@@ -1,0 +1,178 @@
+---
+title: "ANOVA FOR PK PARAMETERS"
+author: "Nikam Vikrant"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r}
+rm(list=ls(all=T))
+#pk parameter function for given dataset APPLYing for loop and finding summary w.r.t different factors
+data=read.csv("C:/Users/vikra/Downloads/BABEData.csv",header=F)
+data
+data1=data[,5:20]
+ti=unlist(data1[1,])
+ci=unlist(data1[2,])
+pkpara=function(ci,ti){
+  n=length(ci);
+  c_max=max(ci);
+  a=which.max(ci);
+  t_max=ti[a];
+  auctk=sum((ci[2:n]+ci[1:n-1])*(ti[2:n]-ti[1:(n-1)]))/2;
+  ke=-2.303*coefficients(lm(log10(ci[(a+1):n])~ti[(a+1):n]))[2];
+  thalf=0.693/ke;
+  aucinf=auctk+ci[n]/ke;
+  df=data.frame("max_con"=c_max,"max_time"=t_max,"AUC_tk"=auctk,"KE"=ke,"AUC_inf"=aucinf,"t_half"=thalf);
+  return(df)
+}
+pkpara(ci,ti)
+```
+
+```{r}
+df=data.frame("max_con"=0,"max_time"=0,"AUC_tk"=0,"KE"=0,"AUC_inf"=0,"t_half"=0);
+df
+for(i in 2:49){
+  df=rbind(df,pkpara(unlist(data1[i,]), unlist(data1[1,])))
+}
+df
+```
+```{r}
+df1=df[2:49,]
+df1
+
+```
+```{r}
+sapply(df1,summary)
+
+```
+```{r}
+
+y=data.frame(data[2:49,1:4],df1[1:48,])
+y
+```
+
+
+
+
+```{r}
+vikrant=function(Y,Per,Sub,Seq){
+df=data.frame(Y,Per,Sub,Seq)
+Y11=df[df$Per==1&df$Seq==1,1];n1=length(Y11);
+Y12=df[df$Per==1&df$Seq==2,1];
+Y21=df[df$Per==2&df$Seq==1,1];n2=length(Y12);
+Y22=df[df$Per==2&df$Seq==2,1];
+df_temp=data.frame(c(Y11,Y12),c(Y21,Y22))
+df_temp
+SSwithin=sum(apply(df_temp,1,var))
+SSwithin
+SSBetween=2*sum((apply(df_temp,1,mean)-mean(df$Y))^2)
+SSBetween
+SStotal=(2*(n1+n2)-1)*var(df$Y)
+SStotal
+Chat=(mean(Y12)+mean(Y22))-(mean(Y11)+mean(Y21))
+SScarry=2*n1*n2/(n1+n2)*Chat^2/4
+SScarry
+SSinter=SSBetween-SScarry
+Fhat=(((mean(Y21)-mean(Y11))-(mean(Y22)-mean(Y12)))/2)
+SSdrug=2*n1*n2/(n1+n2)*Fhat^2
+SSdrug
+Phat=(((mean(Y21)-mean(Y11))-(mean(Y12)-mean(Y22)))/2)
+SSperiod=2*n1*n2/(n1+n2)*Phat^2
+SSperiod
+SSintra=SSwithin-SSdrug-SSperiod
+source1=c("carry","ïnter","drug","period","intra","Total")
+df=c(1,n1+n2-2,1,1,n1+n2-2,2*(n1+n2))
+SS=c(SScarry,SSinter,SSdrug,SSperiod,SSintra,SStotal)
+Msq=SS/df
+Fcal=rep(0,6)
+Fcal[1]=Msq[1]/Msq[2]
+Fcal[2:4]=Msq[2:4]/Msq[5]
+SS=c(SScarry,SSinter,SSdrug,SSperiod,SSintra,SStotal)
+data.frame("source"=source1,"DF"=df,Sumofsq=SS,Msq,Fcal)
+return(data.frame("source"=source1,"DF"=df,Sumofsq=SS,Msq,Fcal))
+}
+```
+
+
+```{r}
+df=read.csv("C:/Users/vikra/Downloads/BABEData22.csv")
+vikrant(Y=df$Y,Seq=df$Seq,Per=df$Per,Sub=df$Sub)
+```
+
+
+```{r}
+df6=read.csv("C:/Users/vikra/Downloads/BABEData.csv",header =TRUE,stringsAsFactors = FALSE)
+df6
+
+```
+
+```{r}
+df3=cbind(df6[,1:4],y[,5:10])
+```
+
+
+
+
+
+```{r}
+df3
+```
+
+
+
+```{r}
+vikrant(Y=df3$max_con,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+
+```
+
+```{r}
+vikrant(Y=df3$max_time,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+```
+
+
+```{r}
+vikrant(Y=df3$AUC_tk,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+```
+
+```{r}
+vikrant(Y=df3$AUC_inf,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+```
+
+```{r}
+vikrant(Y=df3$KE,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+```
+
+```{r}
+vikrant(Y=df3$t_half,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+```
+
+```{r}
+data
+```
+```{r}
+data=read.csv("C:/Users/vikra/Downloads/BABEData.csv",header=T)
+data
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+df=data.frame(Time=ti,Tr1=apply(data[data$treat==1,5:20],2,mean),Tr2=apply(data[data$treat==1,5:20],2,mean))
+
+df%>%
+  ggplot(aes(x=Time,y=Tr1))+
+  geom_point()+geom_smooth()
+  
+  
+plot(ti,apply(data[data$treat==1,5:20],2,mean),type="l")
+abline(ti,apply(data[data$treat==2,5:20],2,mean))
+```
+
+```{r}
+apply(df,2,mean)
+```
+
+
+
