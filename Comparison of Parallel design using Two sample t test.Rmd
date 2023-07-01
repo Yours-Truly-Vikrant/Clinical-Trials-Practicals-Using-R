@@ -1,0 +1,24 @@
+---
+title: "Treatment Comparison in Clinical Trials using Two sample t-test"
+author: "Nikam Vikrant Dipak"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r}
+#2 Treatment Comparisons in Clinical Trials
+#2.1 Analysis of Parallel Design
+#two sample t-test
+#Assuming equal variance
+#Ho:mu1=mu2 vs H1:mu1!=mu2
+alpha=0.05
+a=c(2.5,2.25,2.35,2.60,2.10,2.45,2.50,2.1,2.2)
+b=c(2.45,2.50,2.60,2.77,2.60,2.55,2.65,2.75,2.45,2.50)
+stat=t.test(a,b,alternative = 'less',var.equal=T)
+stat
+
+ifelse(stat$p.value>alpha,"Reject Null Hypothesis","Fail To Reject Null Hypothesis")
+
+
+```
+
