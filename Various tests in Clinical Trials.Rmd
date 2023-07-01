@@ -1,0 +1,87 @@
+---
+title: "Various Tests in Clinical Trials"
+author: "Nikam Vikrant Dipak"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r}
+#In a clinical trial, the following data were obtained comparing placebo and two drugs.
+#a) Test for treatment differences, using only Post Drug values.
+#b) Test for treatment differences by testing the change from baseline(Pre Drug)
+pre=c(180,140,175,120,165,190,170,143,180,115,176,200,172,140,182,122,171,192) #Blood Pressure before applying treatment
+post=c(176,142,174,128,165,183,161,140,176,120,170,195,165,141,175,122,166,185) #Blood pressure after applying treatment
+Drug=c(rep("Plaebo",6),rep("Drug1",6),rep("Drug2",6))
+hg=data.frame("Pre"=pre,"Post"=post,"Drug"=Drug);hg
+aov=aov(post~Drug,data=hg)
+aov
+```
+```{r}
+Drug=c(rep(c("Plaebo","Drug1","Drug2"),each=6))
+```
+
+```{r}
+summary(aov)
+```
+```{r}
+hg$diff=hg$Post-hg$Pre
+hg
+```
+
+```{r}
+print(aov(diff~Drug,data=hg))
+```
+```{r}
+print(summary(aov(diff~Drug,data=hg)))
+```
+```{r}
+boxplot(hg$diff,hg$Pre,hg$Post)
+```
+```{r}
+alpha=0.05
+n=1:30
+salary=c(750,600,600,650,700,700,860,810,780,670,690,550,610,715,755,770,680,670,740,760,775,845,870,640,690,715,630,685,780,635)
+stat=t.test(salary,mu=750,alternative ="less")
+stat
+```
+```{r}
+ifelse(stat$p.value>alpha,"Reject Null Hypothesis","Fail to Reject Null Hypothesis")
+```
+
+```{r}
+#Q. The gain of weights of two random samples of chicks o two different diets A and B are given below. Examine whether the difference in mean increases in weight is significant or not.
+#Ho:mu1=mu2 vs H1:mu1!=mu2 ( != means not equal to) 
+x=c(2.5,2.25,2.35,2.60,2.10,2.45,2.50,2.1,2.2) #Weight gain for Diet A
+y=c(2.45,2.50,2.60,2.77,2.60,2.55,2.65,2.75,2.45,2.50) #Weight gain for Diet B
+#We are assuming equal variances for two groups.
+t.test(x,y,alt='less',var.equal=T)
+```
+
+
+
+
+```{r}
+#A sample of 12 Student from a school has the following scores in IQ test. 89,87,76,78,79,86,74,83,75,71,76,92. Do this data support the mean IQ marks of the school students is 80. Test at 5% level.
+#Ho:mu=80 vs H1:mu!=80 Not equal to 80
+x=c(89,87,76,78,79,86,74,83,75,71,76,92)
+#One sample t test
+t.test(x,mu=80,alternative = "two.sided")
+#p-value is greater than level of significance accept Ho.
+
+```
+
+```{r}
+#Q.A business school in its advertisements claims that the average salary of its graduates in a particular lean year is at par with the average salaries offered at the top five business schools. A sample of 30 graduates, from the business school whose claim was to be verified, was taken at random.Their salaries are given.
+#The average salary offered at the top five business schools in that year was given as Rs. 750,000. Assess the validity of the claim made by the business school in its advertisement.
+#Salary
+x=c(750,600,600,650,700,780,860,810,780,670,690,550,610,715,755,770,680,670,740,760,775,845,870,640,690,715,630,685,780,635);
+#Ho:mu=750 vs H1:mu!=750
+t.test(x,mu=750,alternative = "less")
+#p-value is less than level of significance we reject Ho.
+```
+
+
+
+
+
+
