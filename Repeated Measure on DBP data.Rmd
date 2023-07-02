@@ -1,0 +1,67 @@
+---
+title: "DBPdata"
+author: "Sachin Ghogare"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r}
+r_data=read.csv("C:\\Users\\vikra\\Downloads\\DBP DATA.csv")
+head(r_data)
+```
+
+```{r}
+library(ggplot2)
+boxplot(r_data[,3:7],xlab='Visits',ylab='Blood Pressure Level',main="Comparison of repeated measures of blood pressure")
+```
+
+```{r}
+r_data$diff=rep(0,40)
+r_data$diff=r_data$DBP5-r_data$DBP1
+r_data[,c(2,10)]
+t.test(diff~TRT,data=r_data,var.equal=TRUE)         # T test 
+ggplot(r_data,aes(diff,group=TRT,color=TRT))+
+geom_boxplot()
+# or
+boxplot(diff~TRT,data=r_data)
+```
+
+```{r}
+head(r_data)
+r_data2=data.frame("BP"=c(r_data[,3],r_data[,4],r_data[,5],r_data[,6],r_data[,7]),
+                   "TRT"=rep(c("A","B"),each=20),
+                   "Visits"=rep(c(1:5),each=40))
+r_data2
+```
+```{r}
+r_data2$TRT=as.factor(r_data2$TRT)
+r_data2$Visits=as.factor(r_data2$Visits)
+```
+# ANOVA
+```{r}
+M1=aov(BP~TRT+Visits+TRT*Visits,data=r_data2)        # ANOVA of a DBP data
+summary(M1)
+```
+# ANCOVA
+```{r}
+r_data2$Age=r_data$Age
+M2=lm(BP~TRT*Visits*Age,data=r_data2)
+summary(M2)
+```
+# MANOVA 
+```{r}
+#manova(cbind(TRT,Visits,Age)~BP,data=r_data2)
+Y=cbind(r_data$DBPl,r_data$DBP2,r_data$DBP3,r_data$DBP4,r_data$DBP5)
+M3=manova(Y~TRT*Visits,data=r_data2)
+```
+ 
+```{r}
+r_data2$Sub=as.factor(rep(r_data$ï..Subject,5))
+lm(BP~TRT*Age*Visits/Sub,data=r_data2)
+```
+```{r}
+r_data2$Sub=as.factor(rep(r_data$ï..Subject,5))
+summary(aov(lm(BP~TRT*Sub/TRT,data=r_data2)))
+```
+ 
+ 
