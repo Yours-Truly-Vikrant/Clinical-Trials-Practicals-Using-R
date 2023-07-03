@@ -1,0 +1,90 @@
+---
+title: "Practical_9"
+author: "Nikam Vikrant"
+date: "2022-11-04"
+output: word_document
+---
+
+```{r}
+vikrant=function(Y,Per,Sub,Seq){
+df=data.frame(Y,Per,Sub,Seq)
+Y11=df[df$Per==1&df$Seq==1,1];n1=length(Y11);
+Y12=df[df$Per==1&df$Seq==2,1];
+Y21=df[df$Per==2&df$Seq==1,1];n2=length(Y12);
+Y22=df[df$Per==2&df$Seq==2,1];
+df_temp=data.frame(c(Y11,Y12),c(Y21,Y22))
+df_temp
+SSwithin=sum(apply(df_temp,1,var))
+SSwithin
+SSBetween=2*sum((apply(df_temp,1,mean)-mean(df$Y))^2)
+SSBetween
+SStotal=(2*(n1+n2)-1)*var(df$Y)
+SStotal
+Chat=(mean(Y12)+mean(Y22))-(mean(Y11)+mean(Y21))
+SScarry=2*n1*n2/(n1+n2)*Chat^2/4
+SScarry
+SSinter=SSBetween-SScarry
+
+
+Fhat=(((mean(Y21)-mean(Y11))-(mean(Y22)-mean(Y12)))/2)
+SSdrug=2*n1*n2/(n1+n2)*Fhat^2
+SSdrug
+
+
+Phat=(((mean(Y21)-mean(Y11))-(mean(Y12)-mean(Y22)))/2)
+SSperiod=2*n1*n2/(n1+n2)*Phat^2
+SSperiod
+
+SSintra=SSwithin-SSdrug-SSperiod
+SSintra
+
+source1=c("carry","ïnter","drug","period","intra","Total")
+df=c(1,n1+n2-2,1,1,n1+n2-2,2*(n1+n2))
+SS=c(SScarry,SSinter,SSdrug,SSperiod,SSintra,SStotal)
+Msq=SS/df
+
+Fcal=rep(0,6)
+Fcal[1]=Msq[1]/Msq[2]
+Fcal[2:4]=Msq[2:4]/Msq[5]
+
+SS=c(SScarry,SSinter,SSdrug,SSperiod,SSintra,SStotal)
+data.frame("source"=source1,"DF"=df,Sumofsq=SS,Msq,Fcal)
+
+return(data.frame("source"=source1,"DF"=df,Sumofsq=SS,Msq,Fcal))
+}
+```
+
+```{r}
+df=read.csv("C:/Users/vikra/Downloads/BABEData22.csv")
+vikrant(Y=df$Y,Seq=df$Seq,Per=df$Per,Sub=df$Sub)
+
+
+```
+```{r}
+df1=read.csv("C:/Users/vikra/Downloads/BABEData.csv",header = FALSE,stringsAsFactors = FALSE)
+df1
+
+df1=read.csv("C:/Users/vikra/Downloads/BABEData.csv",header = FALSE,stringsAsFactors = FALSE)
+time_c=df1[1,5:20]
+time_c
+conc=df1[2:49,5:20]
+conc
+
+
+out=data.frame("Tmax"=rep(0,48),"Cmax"=rep(0,48),"AUCt"=rep(0,48),"AUCinf"=rep(0,48),"Thalf"=rep(0,48),"Ke"=rep(0.48))
+for(i in 1:48){
+  out[i,]=pkpara(as.numeric(unlist(time_c)),as.numeric(unlist(conc[i,])))
+}
+
+df2=df1[2:49,1:4]
+colnames(df2)=df1[1,1:4]
+df3=cbind(df2,out)
+df3
+```
+```{r}
+#vikrant(df3$Cmax,df3$seq,df3$Per,df3$Sub)
+vikrant(Y=df3$Cmax,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+vikrant(Y=df3$Tmax,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+vikrant(Y=df3$AUCt,Seq=df3$seq,Per=df3$Per,Sub=df3$Sub)
+```
+
