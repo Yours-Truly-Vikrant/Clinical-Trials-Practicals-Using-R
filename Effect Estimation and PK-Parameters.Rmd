@@ -1,0 +1,147 @@
+---
+title: "Effect estimation"
+author: "Nikam Vikrant"
+output: html_document
+---
+```{r}
+df=read.csv("C:/Users/vikra/Downloads/BABEData22.csv",header = FALSE)
+df
+
+```
+```{r}
+df=read.csv("C:/Users/vikra/Downloads/BABEData22.csv")
+Y11=df[df$Per==1&df$Seq==1,1];n1=length(Y11);
+Y12=df[df$Per==1&df$Seq==2,1];
+Y21=df[df$Per==2&df$Seq==1,1];n2=length(Y21);
+Y22=df[df$Per==2&df$Seq==2,1];
+df_temp=data.frame(c(Y11,Y12),c(Y21,Y22))
+SSwithin=sum(apply(df_temp,1,var))
+SSBetween=2*sum((apply(df_temp,1,mean)-mean(df$Y))^2)
+SStotal=(48-1)*var(df$Y)
+cat(SSwithin,SSBetween,SStotal)
+```
+```{r}
+Chat=(mean(Y12)+mean(Y22))-(mean(Y11)+mean(Y21))
+SScarry=2*n1*n2/(n1+n2)*Chat^2/4
+SScarry
+SSinter=SSBetween-SScarry
+
+
+Fhat=(((mean(Y21)-mean(Y11))-(mean(Y22)-mean(Y12)))/2)
+SSdrug=2*n1*n2/(n1+n2)*Fhat^2
+SSdrug
+
+
+Phat=(((mean(Y21)-mean(Y11))-(mean(Y12)-mean(Y22)))/2)
+SSperiod=2*n1*n2/(n1+n2)*Phat^2
+SSperiod
+
+SSintra=SSwithin-SSdrug-SSperiod
+SSintra
+
+
+
+```
+
+```{r}
+source1=c("carry","ïnter","drug","period","intra","Total")
+df=c(1,n1+n2-2,1,1,n1+n2-2,2*(n1+n2))
+SS=c(SScarry,SSinter,SSdrug,SSperiod,SSintra,SStotal)
+
+MSq=SS/df
+Fcal=rep(0,6)
+Fcal[1]=MSq[1]/MSq[2]
+Fcal[3:4]=MSq[3:4]/MSq[5]
+data.frame("source"=source1,"DF"=df,"SS"=SS,"MSQ"=MSq,"Fratio"=Fcal)
+```
+
+```{r}
+data.frame("source"=source1,"DF"=df,"Sumsq"=SS)
+
+```
+```{r}
+effect_estimation=function(Y, Per, Sub, Seq){
+  df=data.frame(Y, Per, Sub, Seq)
+  Y11=df[df$Per==1&df$Seq==1,1];n1=length(Y11);
+  Y12=df[df$Per==1&df$Seq==2,1];
+  Y21=df[df$Per==2&df$Seq==1,1];n2=length(Y21);
+  Y22=df[df$Per==2&df$Seq==2,1];
+  df_temp=data.frame(c(Y11,Y12),c(Y21,Y22))
+  SSwithin=sum(apply(df_temp,1,var))
+  SSBetween=2*sum((apply(df_temp,1,mean)-mean(df$Y))^2)
+  SStotal=(2*(n1+n2)-1)*var(df$Y)
+  cat(SSwithin,SSBetween,SStotal)
+  Chat=(mean(Y12)+mean(Y22))-(mean(Y11)+mean(Y21))
+  SScarry=2*n1*n2/(n1+n2)*Chat^2/4
+  SSinter=SSBetween-SScarry
+  Fhat=(((mean(Y21)-mean(Y11))-(mean(Y22)-mean(Y12)))/2)
+  SSdrug=2*n1*n2/(n1+n2)*Fhat^2
+  Phat=(((mean(Y21)-mean(Y11))-(mean(Y12)-mean(Y22)))/2)
+  SSperiod=2*n1*n2/(n1+n2)*Phat^2
+  SSintra=SSwithin-SSdrug-SSperiod
+  source1=c("carry","ïnter","drug","period","intra","Total")
+  df=c(1,n1+n2-2,1,1,n1+n2-2,2*(n1+n2))
+  SS=c(SScarry,SSinter,SSdrug,SSperiod,SSintra,SStotal)
+  
+  MSq=SS/df
+  Fcal=rep(0,6)
+  Fcal[1]=MSq[1]/MSq[2]
+  Fcal[3:4]=MSq[3:4]/MSq[5]
+  df1=data.frame("source"=source1,"DF"=df,"SS"=SS,"MSQ"=MSq,"Fratio"=Fcal)
+  return(df1)
+}
+```
+```{r}
+data=read.csv("C:/Users/vikra/Downloads/BABEData22.csv",header =T)
+df
+```
+```{r}
+effect_estimation(data$Y,data$Per,data$Sub, data$Seq)
+```
+
+```{r}
+#pk parameter function for given dataset APPLYing for loop and finding summary w.r.t different factors
+
+pkpara=function(ci,ti){
+  n=length(ci);
+  c_max=max(ci);
+  a=which.max(ci);
+  t_max=ti[a];
+  auctk=sum((ci[2:n]+ci[1:n-1])*(ti[2:n]-ti[1:(n-1)]))/2;
+  ke=-2.303*coefficients(lm(log10(ci[(a+1):n])~ti[(a+1):n]))[2];
+  thalf=0.693/ke;
+  aucinf=auctk+ci[n]/ke;
+  df=data.frame("max_con"=c_max,"max_time"=t_max,"AUC_tk"=auctk,"KE"=ke,"AUC_inf"=aucinf,"t_half"=thalf);
+  
+  row.names(df)=""
+  return(df)
+}
+
+```
+```{r}
+data=read.csv("C:/Users/vikra/Downloads/BABEData.csv",header=F)
+data1=data[,5:20]
+ti=unlist(data1[1,])
+ci=unlist(data1[2,])
+pkpara(ci,ti)
+```
+
+```{r}
+df=pkpara(unlist(data1[2,]), unlist(data1[1,]))
+for(i in 3:49){
+  df=rbind(df,pkpara(unlist(data1[i,]), unlist(data1[1,])))
+}
+row.names(df)=1:48
+df
+```
+```{r}
+df2=data[2:49,1:4]
+colnames(df2)=data[1,1:4]
+df2=cbind(df2,df)
+df2
+```
+
+```{r}
+effect_estimation(df2$max_con,df2$Per,df2$Sub, df2$seq)
+```
+
